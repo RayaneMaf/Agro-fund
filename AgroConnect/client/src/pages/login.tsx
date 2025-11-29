@@ -872,17 +872,6 @@ export default function LoginPage() {
           <CardDescription>Sign in to your AgroFund account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Debug info - REMOVE THIS IN PRODUCTION */}
-          <div className="text-xs text-muted-foreground bg-muted p-2 rounded border">
-            <div>
-              <strong>Debug Info:</strong>
-            </div>
-            <div>Current Path: {location}</div>
-            <div>
-              User: {user ? `${user.email} (${user.role})` : "Not logged in"}
-            </div>
-          </div>
-
           <Tabs
             value={selectedRole}
             onValueChange={(v) => setSelectedRole(v as UserRole)}

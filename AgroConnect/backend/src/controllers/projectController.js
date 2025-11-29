@@ -192,6 +192,9 @@ const projectController = {
       // Process all projects with risk assessment
       const projectsWithRisk = await Promise.all(
         projects.map(async (project) => {
+          if (project.risk_score !== null && project.risk_score !== undefined) {
+            return project; // Skip if risk score already exists
+          }
           const riskScore = await getRiskAssessment(project);
           return {
             ...project,

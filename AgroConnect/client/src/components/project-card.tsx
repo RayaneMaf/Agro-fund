@@ -1,4 +1,9 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ProjectPost } from "@shared/schema";
@@ -20,13 +25,20 @@ interface ProjectCardProps {
   showApplyButton?: boolean;
 }
 
-export function ProjectCard({ project, onViewDetails, showApplyButton = true }: ProjectCardProps) {
-  const riskScore = project.ai_risk_score ?? 50;
+export function ProjectCard({
+  project,
+  onViewDetails,
+  showApplyButton = true,
+}: ProjectCardProps) {
+  const riskScore = (project.risk_score * 100).toFixed(2) ?? 50;
   const riskLevel = getRiskLevel(riskScore);
   const zoneColor = getZoneColor(project.zone);
 
   return (
-    <Card className="flex flex-col hover-elevate" data-testid={`card-project-${project.project_id}`}>
+    <Card
+      className="flex flex-col hover-elevate"
+      data-testid={`card-project-${project.project_id}`}
+    >
       <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 pb-3">
         <div className="space-y-1 min-w-0 flex-1">
           <h3 className="font-semibold text-lg leading-tight line-clamp-1">
@@ -39,7 +51,7 @@ export function ProjectCard({ project, onViewDetails, showApplyButton = true }: 
         </div>
         <div className="shrink-0 flex flex-col items-center">
           <div
-            className={`relative h-14 w-14 rounded-full flex items-center justify-center border-4 ${
+            className={`relative h-20 w-20 rounded-full flex items-center justify-center border-4 ${
               riskScore < 35
                 ? "border-green-500 bg-green-50 dark:bg-green-950"
                 : riskScore < 65
@@ -47,7 +59,7 @@ export function ProjectCard({ project, onViewDetails, showApplyButton = true }: 
                 : "border-red-500 bg-red-50 dark:bg-red-950"
             }`}
           >
-            <span className={`text-lg font-bold ${riskLevel.color}`}>
+            <span className={`text-md font-bold ${riskLevel.color}`}>
               {riskScore}%
             </span>
           </div>
@@ -73,7 +85,9 @@ export function ProjectCard({ project, onViewDetails, showApplyButton = true }: 
               <Calendar className="h-3.5 w-3.5" />
               <span className="text-xs">Duration</span>
             </div>
-            <p className="font-semibold text-sm">{project.duration_months} months</p>
+            <p className="font-semibold text-sm">
+              {project.duration_months} months
+            </p>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -218,7 +232,9 @@ export function ProjectDetailContent({
                   <Calendar className="h-4 w-4" />
                   <span className="text-sm">Duration</span>
                 </div>
-                <p className="font-bold text-lg">{project.duration_months} months</p>
+                <p className="font-bold text-lg">
+                  {project.duration_months} months
+                </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -238,7 +254,9 @@ export function ProjectDetailContent({
               {project.farm_size_ha && (
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-muted-foreground">Farm Size</span>
-                  <span className="font-medium">{project.farm_size_ha} hectares</span>
+                  <span className="font-medium">
+                    {project.farm_size_ha} hectares
+                  </span>
                 </div>
               )}
               <div className="flex justify-between py-2 border-b">
@@ -249,8 +267,12 @@ export function ProjectDetailContent({
               </div>
               {project.experience_years !== undefined && (
                 <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Farmer Experience</span>
-                  <span className="font-medium">{project.experience_years} years</span>
+                  <span className="text-muted-foreground">
+                    Farmer Experience
+                  </span>
+                  <span className="font-medium">
+                    {project.experience_years} years
+                  </span>
                 </div>
               )}
               {project.altitude_m !== undefined && (
@@ -268,19 +290,25 @@ export function ProjectDetailContent({
               {project.rainfall_mm !== undefined && (
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-muted-foreground">Rainfall</span>
-                  <span className="font-medium">{project.rainfall_mm.toFixed(1)} mm/year</span>
+                  <span className="font-medium">
+                    {project.rainfall_mm.toFixed(1)} mm/year
+                  </span>
                 </div>
               )}
               {project.et0_mm !== undefined && (
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-muted-foreground">ET0</span>
-                  <span className="font-medium">{project.et0_mm.toFixed(1)} mm</span>
+                  <span className="font-medium">
+                    {project.et0_mm.toFixed(1)} mm
+                  </span>
                 </div>
               )}
               {project.drought_index !== undefined && (
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-muted-foreground">Drought Index</span>
-                  <span className="font-medium">{(project.drought_index * 100).toFixed(1)}%</span>
+                  <span className="font-medium">
+                    {(project.drought_index * 100).toFixed(1)}%
+                  </span>
                 </div>
               )}
             </div>
@@ -292,7 +320,9 @@ export function ProjectDetailContent({
               <p className="font-medium">
                 {project.farmer.first_name} {project.farmer.last_name}
               </p>
-              <p className="text-sm text-muted-foreground">{project.farmer.wilaya}</p>
+              <p className="text-sm text-muted-foreground">
+                {project.farmer.wilaya}
+              </p>
               {project.farmer.phone && (
                 <p className="text-sm text-muted-foreground mt-1">
                   Tel: {project.farmer.phone}

@@ -7,6 +7,20 @@ import numpy as np
 
 app = FastAPI()
 
+np.random.seed(42)
+
+def soil_quality_floating(d):
+    if d == 'poor':
+        return 0.40  # Low quality
+    elif d == 'average':
+        return 0.55  # Medium quality
+    elif d == 'good':
+        return 0.70  # High quality
+    elif d == 'excellent':
+        return 0.85  # Very high quality
+    else:
+        return 0.50  # Default fallback
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -58,7 +72,7 @@ def predict(data: dict):
                 data['zone'], 
                 data['crop_type'],
                 float(data['farm_size_ha']),
-                 np.random.beta(2.2,2.0),
+                soil_quality_floating(data['soil_quality']),
                 float(data['soil_salinity']),
                 float(data['altitude_m']),
                 float(data['rainfall_mm']),
@@ -85,7 +99,7 @@ def predict(data: dict):
             data['zone'], 
             data['crop_type'],
             float(data['farm_size_ha']),
-             np.random.beta(2.2,2.0),
+            soil_quality_floating(data['soil_quality']),
             float(data['soil_salinity']),
             float(data['altitude_m']),
             float(data['rainfall_mm']),
