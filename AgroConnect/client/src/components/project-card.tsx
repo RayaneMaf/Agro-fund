@@ -155,7 +155,7 @@ export function ProjectDetailContent({
   isApplying,
   hasApplied,
 }: ProjectDetailProps) {
-  const riskScore = project.ai_risk_score ?? 50;
+  const riskScore = project.risk_score.toFixed(2) ?? 50;
   const riskLevel = getRiskLevel(riskScore);
   const zoneColor = getZoneColor(project.zone);
 
@@ -182,7 +182,7 @@ export function ProjectDetailContent({
           </div>
         </div>
         <div className="shrink-0 flex flex-col items-center">
-          <div
+          {/* <div
             className={`relative h-20 w-20 rounded-full flex items-center justify-center border-4 ${
               riskScore < 35
                 ? "border-green-500 bg-green-50 dark:bg-green-950"
@@ -197,7 +197,7 @@ export function ProjectDetailContent({
           </div>
           <span className={`text-sm mt-1 font-medium ${riskLevel.color}`}>
             {riskLevel.label}
-          </span>
+          </span> */}
         </div>
       </div>
 
