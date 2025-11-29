@@ -1,0 +1,296 @@
+We have our project called AgroFund, it is like a linking between farmers and investors , like a farm has a land but does not has the utilities to make it , so he needs someone who wants to invest in agriculture, this is our website, we have some pages:
+
+PUBLIC PAGES
+Landing Page
+Explanation of what AgroFund does 3 user type buttons: [Farmer] [Investor] [Job Seeker] Login/Register options
+Login/Register Page
+Choose user type (Farmer/Investor/Job Seeker) Login form or their Register form
+  INVESTOR PAGES (After Login)
+Browse Projects
+List of all farmer projects AI Risk Score % for each project Filters Search bar Click project → Detail Modal opensm and (one project can only have one investor , for the total money)
+Project Detail Modal (Popup)
+Full project information Farmer details Budget breakdown AI risk analysis [Apply to Invest] button
+My Investments
+All projects investor applied to Status: Pending / Accepted / Rejected / Active / Completed Track investment progress
+  FARMER PAGES (After Login)
+My Projects
+List of all farmer's posted projects Click project → Detail Modal with investor applications See all investor applications for each project [Accept Investor] button (can accept only ONE investor per project) [Post New Project] button
+Post New Project Form (modal)
+Create new farming project Fill project details Submit for review
+Need Employment (Job Postings)
+List of all job postings farmer created Click job → See job seeker applications [Accept Job Seeker] button (can accept MULTIPLE job seekers per job) [Post New Job] button
+Post New Job Form (modal)
+Create new job posting Job details Submit job posting  
+JOB SEEKER PAGES (After Login)
+Browse Jobs
+List of all farmer job postings Filter by job type, wilaya, payment Search bar Click job → Job Detail Modal opens
+Job Detail Modal (Popup)
+Full job information Farmer details Job requirements Payment details [Apply for Job] button
+
+	And  one page to see available announcement of employment and can contact the farmer by phone 
+
+Now let us talk about the database and the attributes:
+enum ProjectStatus {
+    PENDING
+    ACTIVE
+    COMPLETED
+}
+
+enum AppStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
+
+enum InvestStatus {
+    ACTIVE
+    COMPLETED
+    CANCELLED
+}
+
+enum JobStatus {
+    OPEN
+    ONGOING
+    COMPLETED
+}
+
+enum IrrigationType {
+    DRIP
+    SPRINKLER
+    FLOOD
+    NONE
+}
+
+enum Zone {
+    Coastal
+    Highlands
+    Steppe
+    Sahara
+}
+
+enum Soil {
+    poor
+    average
+    good
+    excelent
+}
+
+model Investor {
+    investor_id   Int      @id @default(autoincrement())
+    first_name    String
+    last_name     String
+    email         String   @unique
+    password_hash String
+    phone         String?
+    investor_type UserType? // Enum: INDIVIDUAL or COMPANY
+    created_at    DateTime @default(now())
+
+    // RELATIONS (Virtual pointers for navigation)
+    applications ApplicationForProjects[]
+    investments  Investment[]
+}
+
+model Farmer {
+    farmer_id     Int      @id @default(autoincrement())
+    first_name    String
+    last_name     String
+    email         String   @unique
+    password_hash String
+    phone         String?
+    wilaya        String
+    address       String?
+    created_at    DateTime @default(now())
+
+    // RELATIONS (Virtual pointers for navigation)
+    projects ProjectPost[]
+    jobs     EmploymentPost[]
+}
+
+model JobSeeker {
+    job_seeker_id Int      @id @default(autoincrement())
+    first_name    String
+    last_name     String
+    email         String   @unique
+    password_hash String
+    phone         String?
+    wilaya        String
+    created_at    DateTime @default(now())
+
+    // RELATIONS (Virtual pointer)
+    applications ApplicationForEmployment[]
+}
+
+model ProjectPost {
+    project_id Int @id @default(autoincrement())
+
+    title              String
+    description        String
+    budget_required    Float
+    duration_months    Int
+    profit_share       Float
+    status             ProjectStatus   @default(PENDING)
+    created_at         DateTime        @default(now())
+    crop_type          String
+    farm_size_ha       Float? // Renamed from land_size for clarity
+    soil_quality       Soil            @default(average) // e.g. "Sandy", "Clay"
+    soil_quality_score Float?
+    soil_salinity      Float?
+    rainfall_mm        Float?
+    altitude_m         Float?
+    et0_mm             Float?
+    drought_index      Float?
+    zone               Zone            @default(Coastal)
+    irrigation_type    IrrigationType?
+    experience_years   Int? // Farmer's experience with this crop
+
+    // Foreign Key
+    farmer_id Int
+    farmer    Farmer @relation(fields: [farmer_id], references: [farmer_id])
+
+    // Relations
+    applications ApplicationForProjects[]
+    investment   Investment?
+}
+
+model EmploymentPost {
+    job_id Int @id @default(autoincrement())
+
+    // Job Details
+    job_type       String // e.g. "Harvesting", "Pruning"
+    description    String
+    payment        Float // Daily or Total wage
+    workers_needed Int
+    duration_days  Int
+    wilaya         String
+    status         JobStatus @default(OPEN)
+    created_at     DateTime  @default(now())
+
+    // Foreign Key
+    farmer_id Int
+    farmer    Farmer @relation(fields: [farmer_id], references: [farmer_id])
+
+    // Relations
+    applications ApplicationForEmployment[]
+}
+
+model ApplicationForProjects {
+    application_id Int       @id @default(autoincrement())
+    message        String?
+    status         AppStatus @default(PENDING)
+    created_at     DateTime  @default(now())
+
+    project_id Int
+    project    ProjectPost @relation(fields: [project_id], references: [project_id])
+
+    investor_id Int
+    investor    Investor @relation(fields: [investor_id], references: [investor_id])
+}
+
+model ApplicationForEmployment {
+    application_id Int       @id @default(autoincrement())
+    message        String?
+    status         AppStatus @default(PENDING)
+    created_at     DateTime  @default(now())
+
+    job_id Int
+    job    EmploymentPost @relation(fields: [job_id], references: [job_id])
+
+    job_seeker_id Int
+    job_seeker    JobSeeker @relation(fields: [job_seeker_id], references: [job_seeker_id])
+}
+
+model Investment {
+    investment_id Int          @id @default(autoincrement())
+    amount        Float
+    start_date    DateTime
+    end_date      DateTime?
+    status        InvestStatus @default(ACTIVE)
+
+    project_id Int         @unique
+    project    ProjectPost @relation(fields: [project_id], references: [project_id]), 
+
+    investor_id Int
+    investor    Investor @relation(fields: [investor_id], references: [investor_id])
+}
+
+	
+
+for wilayas we have a fixed array of objects of wilayas, zone, altitude:
+
+
+export const wilayasDetailed = [
+{ wilaya: "Adrar", altitude_m: 273, zone: "Sahara" },
+{ wilaya: "Chlef", altitude_m: 114, zone: "Coastal" },
+{ wilaya: "Laghouat", altitude_m: 760, zone: "Steppe" },
+{ wilaya: "Oum El Bouaghi", altitude_m: 1000, zone: "Highlands" },
+{ wilaya: "Batna", altitude_m: 1050, zone: "Highlands" },
+{ wilaya: "Béjaïa", altitude_m: 28, zone: "Coastal" },
+{ wilaya: "Biskra", altitude_m: 88, zone: "Steppe" },
+{ wilaya: "Béchar", altitude_m: 805, zone: "Sahara" },
+{ wilaya: "Blida", altitude_m: 257, zone: "Highlands" },
+{ wilaya: "Bouira", altitude_m: 580, zone: "Highlands" },
+{ wilaya: "Tamanrasset", altitude_m: 1320, zone: "Sahara" },
+{ wilaya: "Tébessa", altitude_m: 620, zone: "Steppe" },
+{ wilaya: "Tlemcen", altitude_m: 800, zone: "Highlands" },
+{ wilaya: "Tiaret", altitude_m: 989, zone: "Highlands" },
+{ wilaya: "Tizi Ouzou", altitude_m: 350, zone: "Highlands" },
+{ wilaya: "Alger", altitude_m: 7, zone: "Coastal" },
+{ wilaya: "Djelfa", altitude_m: 1130, zone: "Steppe" },
+{ wilaya: "Jijel", altitude_m: 78, zone: "Coastal" },
+{ wilaya: "Sétif", altitude_m: 1100, zone: "Highlands" },
+{ wilaya: "Saïda", altitude_m: 980, zone: "Highlands" },
+{ wilaya: "Skikda", altitude_m: 18, zone: "Coastal" },
+{ wilaya: "Sidi Bel Abbès", altitude_m: 260, zone: "Steppe" },
+{ wilaya: "Annaba", altitude_m: 10, zone: "Coastal" },
+{ wilaya: "Guelma", altitude_m: 290, zone: "Steppe" },
+{ wilaya: "Constantine", altitude_m: 640, zone: "Highlands" },
+{ wilaya: "Médéa", altitude_m: 1045, zone: "Highlands" },
+{ wilaya: "Mostaganem", altitude_m: 5, zone: "Coastal" },
+{ wilaya: "M’Sila", altitude_m: 471, zone: "Steppe" },
+{ wilaya: "Mascara", altitude_m: 436, zone: "Steppe" },
+{ wilaya: "Ouargla", altitude_m: 138, zone: "Sahara" },
+{ wilaya: "Oran", altitude_m: 15, zone: "Coastal" },
+{ wilaya: "El Bayadh", altitude_m: 1082, zone: "Steppe" },
+{ wilaya: "Illizi", altitude_m: 582, zone: "Sahara" },
+{ wilaya: "Bordj Bou Arreridj", altitude_m: 916, zone: "Highlands" },
+{ wilaya: "Boumerdès", altitude_m: 18, zone: "Coastal" },
+{ wilaya: "El Tarf", altitude_m: 11, zone: "Coastal" },
+{ wilaya: "Tindouf", altitude_m: 456, zone: "Sahara" },
+{ wilaya: "Tissemsilt", altitude_m: 954, zone: "Highlands" },
+{ wilaya: "El Oued", altitude_m: 75, zone: "Sahara" },
+{ wilaya: "Khenchela", altitude_m: 1150, zone: "Highlands" },
+{ wilaya: "Souk Ahras", altitude_m: 687, zone: "Highlands" },
+{ wilaya: "Tipaza", altitude_m: 12, zone: "Coastal" },
+{ wilaya: "Mila", altitude_m: 430, zone: "Steppe" },
+{ wilaya: "Aïn Defla", altitude_m: 198, zone: "Steppe" },
+{ wilaya: "Naâma", altitude_m: 1178, zone: "Steppe" },
+{ wilaya: "Aïn Témouchent", altitude_m: 48, zone: "Coastal" },
+{ wilaya: "Ghardaïa", altitude_m: 496, zone: "Sahara" },
+{ wilaya: "Relizane", altitude_m: 28, zone: "Coastal" },
+{ wilaya: "Timimoun", altitude_m: 266, zone: "Sahara" },
+{ wilaya: "Bordj Badji Mokhtar", altitude_m: 250, zone: "Sahara" },
+{ wilaya: "Ouled Djellal", altitude_m: 320, zone: "Steppe" },
+{ wilaya: "Béni Abbès", altitude_m: 276, zone: "Sahara" },
+{ wilaya: "In Salah", altitude_m: 273, zone: "Sahara" },
+{ wilaya: "In Guezzam", altitude_m: 502, zone: "Sahara" },
+{ wilaya: "Touggourt", altitude_m: 85, zone: "Sahara" },
+{ wilaya: "Djanet", altitude_m: 1200, zone: "Sahara" },
+{ wilaya: "El M’Ghair", altitude_m: 50, zone: "Sahara" },
+{ wilaya: "El Meniaa", altitude_m: 45, zone: "Sahara" },
+] as const;do help function to get wilaya, 
+Drought_index is calculated like this: 
+"drought_index": np.clip((et0/2500.0) + (1 - (rainfall/800.0)),0,1),
+soil_quality = np.random.beta(2.2,2.0)
+And et0 and rainfall like that 
+
+
+“ if zone == "Coastal":
+        rainfall = np.random.uniform(400,800); et0 = np.random.uniform(900,1400);     elif zone == "Highlands":
+        rainfall = np.random.uniform(200,400); et0 = np.random.uniform(1200,1600);     elif zone == "Steppe":
+        rainfall = np.random.uniform(80,200); et0 = np.random.uniform(1400,1800);     else:
+        rainfall = np.random.uniform(0,80); et0 = np.random.uniform(1700,2300); ”
+Dffdfdffd
+
+
+
+Do it using react js, do just the frontend, and in the places where there is an api  let it alone , keep a comment , i will fill it by my backend endpoints. Use raw data as i specified in the db schema

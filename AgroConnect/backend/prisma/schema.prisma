@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum ProjectStatus {
+    PENDING
+    ACTIVE
+    COMPLETED
+}
+
+enum AppStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
+
+enum InvestStatus {
+    ACTIVE
+    COMPLETED
+    CANCELLED
+}
+
+enum JobStatus {
+    OPEN
+    ONGOING
+    COMPLETED
+}
+
+enum IrrigationType {
+    DRIP
+    SPRINKLER
+    FLOOD
+    NONE
+}
+
+enum Zone {
+    Coastal
+    Highlands
+    Steppe
+    Sahara
+}
+
+enum Soil {
+    poor
+    average
+    good
+    excelent
+}
+
+model Investor {
+    investor_id   Int      @id @default(autoincrement())
+    first_name    String
+    last_name     String
+    email         String   @unique
+    password_hash String
+    phone         String?
+    investor_type UserType? // Enum: INDIVIDUAL or COMPANY
+    created_at    DateTime @default(now())
+
+    // RELATIONS (Virtual pointers for navigation)
+    applications ApplicationForProjects[]
+    investments  Investment[]
+}
+
+model Farmer {
+    farmer_id     Int      @id @default(autoincrement())
+    first_name    String
+    last_name     String
+    email         String   @unique
+    password_hash String
+    phone         String?
+    wilaya        String
+    address       String?
+    created_at    DateTime @default(now())
+
+    // RELATIONS (Virtual pointers for navigation)
+    projects ProjectPost[]
+    jobs     EmploymentPost[]
+}
+
+model JobSeeker {
+    job_seeker_id Int      @id @default(autoincrement())
+    first_name    String
+    last_name     String
+    email         String   @unique
+    password_hash String
+    phone         String?
+    wilaya        String
+    created_at    DateTime @default(now())
+
+    // RELATIONS (Virtual pointer)
+    applications ApplicationForEmployment[]
+}
+
+model ProjectPost {
+    project_id Int @id @default(autoincrement())
+
+    title              String
+    description        String
+    budget_required    Float
+    duration_months    Int
+    profit_share       Float
+    status             ProjectStatus   @default(PENDING)
+    created_at         DateTime        @default(now())
+    crop_type          String
+    farm_size_ha       Float? // Renamed from land_size for clarity
+    soil_quality       Soil            @default(average) // e.g. "Sandy", "Clay"
+    soil_quality_score Float?
+    soil_salinity      Float?
+    rainfall_mm        Float?
+    altitude_m         Float?
+    et0_mm             Float?
+    drought_index      Float?
+    zone               Zone            @default(Coastal)
+    irrigation_type    IrrigationType?
+    experience_years   Int? // Farmer's experience with this crop
+
+    // Foreign Key
+    farmer_id Int
+    farmer    Farmer @relation(fields: [farmer_id], references: [farmer_id])
+
+    // Relations
+    applications ApplicationForProjects[]
+    investment   Investment?
+}
+
+model EmploymentPost {
+    job_id Int @id @default(autoincrement())
+
+    // Job Details
+    job_type       String // e.g. "Harvesting", "Pruning"
+    description    String
+    payment        Float // Daily or Total wage
+    workers_needed Int
+    duration_days  Int
+    wilaya         String
+    status         JobStatus @default(OPEN)
+    created_at     DateTime  @default(now())
+
+    // Foreign Key
+    farmer_id Int
+    farmer    Farmer @relation(fields: [farmer_id], references: [farmer_id])
+
+    // Relations
+    applications ApplicationForEmployment[]
+}
+
+model ApplicationForProjects {
+    application_id Int       @id @default(autoincrement())
+    message        String?
+    status         AppStatus @default(PENDING)
+    created_at     DateTime  @default(now())
+
+    project_id Int
+    project    ProjectPost @relation(fields: [project_id], references: [project_id])
+
+    investor_id Int
+    investor    Investor @relation(fields: [investor_id], references: [investor_id])
+}
+
+model ApplicationForEmployment {
+    application_id Int       @id @default(autoincrement())
+    message        String?
+    status         AppStatus @default(PENDING)
+    created_at     DateTime  @default(now())
+
+    job_id Int
+    job    EmploymentPost @relation(fields: [job_id], references: [job_id])
+
+    job_seeker_id Int
+    job_seeker    JobSeeker @relation(fields: [job_seeker_id], references: [job_seeker_id])
+}
+
+model Investment {
+    investment_id Int          @id @default(autoincrement())
+    amount        Float
+    start_date    DateTime
+    end_date      DateTime?
+    status        InvestStatus @default(ACTIVE)
+
+    project_id Int         @unique
+    project    ProjectPost @relation(fields: [project_id], references: [project_id])
+
+    investor_id Int
+    investor    Investor @relation(fields: [investor_id], references: [investor_id])
+}
